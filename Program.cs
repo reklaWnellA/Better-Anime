@@ -3,7 +3,7 @@
 class Program{
 	static async Task Main(){
 
-		string path = $"{Directory.GetCurrentDirectory()}\\aaa\\";
+		string path = $"{CONST.CURRENT_DIR}\\aaa\\";
 		CONST.DOWNLOAD_THREADS = 100;
 		CONST.RESTCLIENT_SAVE_COOKIES = true;
 
@@ -32,18 +32,20 @@ class Program{
 		}
 
 		// Download
-		Console.WriteLine($"Episodes Count: {episodes.Count}");
+		Console.WriteLine($"Episodes Count: {episodes.Count}\n");
 		foreach (var episode in episodes){
 			if (episode is not null){
+				Console.WriteLine(new string('-', 10) + "\n");
 				Console.WriteLine($"Downloading: {episode.Title}");
 				bool success = await BetterAnime.DownloadEpisode(episode, path + episode.Title);
 
 				if (!success)
 					Console.WriteLine("an error occurred while downloading the episode!\nerror was saved to log file, skipping episode...");
+				Console.WriteLine();
 			}
 		}
 
-		Console.WriteLine("acabo!");
+		Console.WriteLine("END!");
 	}
 
 	static void OnApplicationExit(object sender, EventArgs e){

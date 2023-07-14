@@ -20,6 +20,7 @@ class M3U8{
         if (!parseIframe.IsMatch(html.OuterHtml))
             return null;
 
+        Console.WriteLine("Getting direct url");
         playerUrl = parseIframe.Match(html.OuterHtml).Groups[1].Value;
 
         // get cookies
@@ -30,14 +31,21 @@ class M3U8{
         bestQuality = SelectBestResolution(html.OuterHtml);
         newPlayerUrl = await ChangePlayerQuality(bestQuality.Token1, bestQuality.Token2);
 
+        Console.WriteLine("Best quality available: " + bestQuality.Quality);
+
         // get playlist m3u8
         m3u8Url = await GetNewPlaylistUrl(newPlayerUrl);
-        playlist = await ParsePaylist(m3u8Url);
+        if (m3u8Url.Contains(".m3u8"))
+            playlist = await ParsePaylist(m3u8Url);
+        else if (m3u8Url.Contains(".mp4"))
+            return m3u8Url;
+        else
+            throw new Exception("GetPlaylist exception, m3u8Url doesnt contain .m3u8 or .mp4");
 
         return playlist;
     }
 
-	record Resolution (string Token1, string Token2);
+	record Resolution (int Quality, string Token1, string Token2);
     static private Resolution SelectBestResolution(string html){
 
         Regex QualityRegex = new ("qualityString\\[\\\"(\\d+)p\\\"\\] = \\\"([^\\\"]*)\\\"");
@@ -58,6 +66,7 @@ class M3U8{
             var qq = int.Parse(quality.Groups[1].Value);
             if (q < qq)
                 selectedResolution = new Resolution(
+                    qq,
                     HttpUtility.UrlEncode(token1),
                     HttpUtility.UrlEncode(token2)
                 );
@@ -162,7 +171,7 @@ class M3U8{
         // Download .KEY
         if (KeyRegex.IsMatch(playlist)){
             string keyUrl = KeyRegex.Match(playlist).Groups[1].Value;
-            replacedplaylist = playlist.Replace(keyUrl, "key.key");
+            replacedplaylist = playlist.Replace(keyUrl, path.Replace("\\","\\\\") +  "key.key");
             
 			await Download.FileRequest(keyUrl, path + "key.key", Download.cts.Token);
         }
@@ -198,7 +207,7 @@ class M3U8{
             //if (!string.IsNullOrEmpty(parameters))
             //    url = url.Replace(parameters, "");
 
-            if (url.Contains("/")){ // better to check if contains http?
+            if (url.Contains("/")){
                 if (url.LastIndexOf(".") > url.LastIndexOf("/"))         // last '.' is from extension (".mp4")
                     segment = url.Substring(url.LastIndexOf("/") + 1, url.LastIndexOf(".") - url.LastIndexOf("/") - 1) /*+ ext*/;
                 else
@@ -211,7 +220,11 @@ class M3U8{
                 url = baseUrl + url;
             }
 
-            replacedplaylist = replacedplaylist.Replace(oldUrlToReplace, segment);
+            // bypass googleusercontent proxy
+            if (url.Contains("https://"))
+                url = url.Substring(url.LastIndexOf("https://"));
+
+            replacedplaylist = replacedplaylist.Replace(oldUrlToReplace, path.Replace("\\","\\\\") + segment);
             list.Add(new Segment(url, path + segment));
         }
 

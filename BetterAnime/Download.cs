@@ -40,7 +40,7 @@ class Download{
             await Task.Delay(100);
     }
 
-    static public async Task FileRequest(string url, string path, CancellationToken ct, bool retry = false){
+    static public async Task FileRequest(string url, string path, CancellationToken ct, int retry = 0){
 
         if (ct.IsCancellationRequested)
             return;
@@ -53,11 +53,32 @@ class Download{
         if (response.RawBytes is not null && response.IsSuccessful)
             File.WriteAllBytes(path, response.RawBytes);
         else{
-            if (!retry)
-				await FileRequest(url, path, ct, true);
+            if (retry < CONST.DOWNLOAD_SEGMENT_MAX_RETRIES)
+				await FileRequest(url, path, ct, ++retry);
 			else
 				cts.Cancel();
         }
+    }
+    
+    static public async Task Mp4(string url, string path, CancellationToken ct){
+        
+        if (ct.IsCancellationRequested)
+            return;
+
+        RestResponse response;
+        RestRequest request = new (url, Method.Get);
+        request.AddHeader("referer", CONST.BETTERANIME_ROOT_ENDPOINT);
+
+        response = await Web.Client.HeadAsync(request, ct);
+        if (response.StatusCode != System.Net.HttpStatusCode.OK)
+            cts.Cancel();
+
+        request = new RestRequest(response.ResponseUri, Method.Get);
+        request.AddHeader("referer", CONST.BETTERANIME_ROOT_ENDPOINT);
+
+        using (var stream = await Web.Client.DownloadStreamAsync(request, ct))
+        using (var output = new FileStream(path + ".mp4", FileMode.Create))
+            await stream.CopyToAsync(output, ct);
     }
 }
 

@@ -3,13 +3,14 @@ namespace BetterAnime;
 public class CONST {
 
 	// Paths
-	private static string currentDir = Directory.GetCurrentDirectory();
-	public static string COOKIES_PATH = $"{currentDir}\\cookies.txt";
-	public static string ERROR_LOG_PATH = $"{currentDir}\\errorlog.txt";
+	public static string CURRENT_DIR = Directory.GetCurrentDirectory();
+	public static string COOKIES_PATH = $"{CURRENT_DIR}\\cookies.txt";
+	public static string ERROR_LOG_PATH = $"{CURRENT_DIR}\\errorlog.txt";
 	// public static string DOWNLOADPATH = $"{currentDir}\\";
 
 	// Downloads
 	public static int DOWNLOAD_THREADS;
+	public static int DOWNLOAD_SEGMENT_MAX_RETRIES = 5;
 
 	// RestClient
 	public static int RESTCLIENT_MAX_TIMEOUT = 30_000;

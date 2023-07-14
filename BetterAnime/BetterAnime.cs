@@ -75,41 +75,58 @@ class BetterAnime{
 
         try{
 
-            string TempPath = $"{path.Substring(0, path.LastIndexOf("\\"))}\\TempFolder\\";
-            Directory.CreateDirectory(TempPath);
+            string pathNoTitle = path.Substring(0, path.LastIndexOf("\\"));
+            string tempPath = $"{pathNoTitle}\\TempFolder\\";
+            if (!Directory.Exists(pathNoTitle))
+                Directory.CreateDirectory(pathNoTitle);
 
             string playlist = await M3U8.GetPlaylist(episode.Url);
-		    var segmentList = await M3U8.ReplacePlaylist(playlist, TempPath);
-            
-		    await Download.Segments(segmentList);
+            bool isMp4 = playlist.Contains(".mp4");
+
+            if (isMp4){
+                Console.WriteLine("Downloading mp4 file");
+                await Download.Mp4(playlist, path, Download.cts.Token);
+            }
+            else{ // m3u8
+                Directory.CreateDirectory(tempPath);
+
+                Console.WriteLine("Downloading m3u8 segments");
+                var segmentList = await M3U8.ReplacePlaylist(playlist, tempPath);
+                await Download.Segments(segmentList);
+            }
 
             if (Download.cts.IsCancellationRequested){
                 Download.cts = new CancellationTokenSource();
                 return false;
             }
 
-            // Join Segments
-            {
-                var psi = new ProcessStartInfo{
-                    UseShellExecute = false,
-                    CreateNoWindow = false, //This hides the cmd prompt that usually shows
-                    FileName = "cmd.exe",
-                    WorkingDirectory = TempPath,
-                    //psi.Verb = "runas"; //This runs the cmd as administrator
-                    Arguments = "/c chcp 65001 &&" +
-                    "ffmpeg -allowed_extensions ALL -i playlist.m3u8 -acodec copy -vcodec copy \"" + path + ".mkv\" && " +
-                    "pause"
-                };
 
-                var process = new Process{
-                    StartInfo = psi
-                };
-                process.Start();
-                process.WaitForExit();
+            // m3u8
+            if (!isMp4){
+                // Join Segments
+                System.Console.WriteLine("Merging segments");
+                {
+                    var psi = new ProcessStartInfo{
+                        UseShellExecute = false,
+                        CreateNoWindow = true, //This hides the cmd prompt that usually shows
+                        FileName = "cmd.exe",
+                        WorkingDirectory = CONST.CURRENT_DIR,
+                        //Verb = "runas", //This runs the cmd as administrator
+                        Arguments = "/c chcp 65001 &&" +
+                            "ffmpeg -allowed_extensions ALL -i \"" + tempPath + "playlist.m3u8\" -acodec copy -vcodec copy \"" + path + ".mkv\" && " +
+                            "exit"
+                    };
+
+                    var process = new Process{
+                        StartInfo = psi
+                    };
+                    process.Start();
+                    process.WaitForExit();
+                }
+
+                // Delete folder
+                Directory.Delete(tempPath, true);
             }
-
-            // Delete folder
-            Directory.Delete(TempPath, true);
             return true;
         }
         catch(Exception ex){
