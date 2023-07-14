@@ -4,11 +4,12 @@ namespace BetterAnime;
 
 class Download{
 
-    public static CancellationTokenSource cts = new CancellationTokenSource();
+    public static CancellationTokenSource cts = new ();
 
 	public static async Task Segments(List<Segment> list){
         int totalCount = list.Count;
         int runningThreadsCount = 0;
+        CancellationToken ct = cts.Token;
 
         while(totalCount > 0){
 
@@ -20,9 +21,9 @@ class Download{
                 Interlocked.Increment(ref runningThreadsCount);
 				Interlocked.Decrement(ref totalCount);
 
-                Thread thread = new Thread(async () =>
+                Thread thread = new (async () =>
                 {
-                    await FileRequest(url, segPath);
+                    await FileRequest(url, segPath, ct);
 
                     Interlocked.Decrement(ref runningThreadsCount);
                 });
@@ -39,21 +40,23 @@ class Download{
             await Task.Delay(100);
     }
 
-    static public async Task FileRequest(string url, string path, bool retry = false){
+    static public async Task FileRequest(string url, string path, CancellationToken ct, bool retry = false){
+
+        if (ct.IsCancellationRequested)
+            return;
 
         RestResponse response;
-        RestRequest request = new RestRequest(url, Method.Get);
+        RestRequest request = new (url, Method.Get);
         request.AddHeader("origin", CONST.BETTERANIME_ROOT_ENDPOINT);
 
-        response = await Web.AsyncRequest(request, cts.Token);
-        if (response.RawBytes is not null){
+        response = await Web.AsyncRequest(request, ct);
+        if (response.RawBytes is not null && response.IsSuccessful)
             File.WriteAllBytes(path, response.RawBytes);
-        }
         else{
             if (!retry)
-				await FileRequest(url, path, true);
+				await FileRequest(url, path, ct, true);
 			else
-				throw new Exception();
+				cts.Cancel();
         }
     }
 }

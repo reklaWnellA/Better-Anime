@@ -1,4 +1,3 @@
-using RestSharp;
 using HtmlAgilityPack;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
@@ -12,7 +11,7 @@ class BetterAnime{
         string url = string.Format(CONST.BETTERANIME_SEARCH_ENDPOINT, HttpUtility.UrlEncode(animeSearch));
         var list = new List<Serie>();
         HtmlNode html = await Web.GetHtmlAsync(url);
-        Regex parseAnimes = new Regex(CONST.BETTERANIME_SEARCH_REGEX);
+        Regex parseAnimes = new (CONST.BETTERANIME_SEARCH_REGEX);
         MatchCollection animes;
 
         if (!parseAnimes.IsMatch(html.OuterHtml))
@@ -76,7 +75,7 @@ class BetterAnime{
 
         try{
 
-            string TempPath = path.Substring(0, path.LastIndexOf("\\")) + "\\TempFolder\\";
+            string TempPath = $"{path.Substring(0, path.LastIndexOf("\\"))}\\TempFolder\\";
             Directory.CreateDirectory(TempPath);
 
             string playlist = await M3U8.GetPlaylist(episode.Url);
@@ -84,20 +83,27 @@ class BetterAnime{
             
 		    await Download.Segments(segmentList);
 
+            if (Download.cts.IsCancellationRequested){
+                Download.cts = new CancellationTokenSource();
+                return false;
+            }
+
             // Join Segments
             {
-                var psi = new ProcessStartInfo();
-                psi.UseShellExecute = false;
-                psi.CreateNoWindow = false; //This hides the cmd prompt that usually shows
-                psi.FileName = "cmd.exe";
-                psi.WorkingDirectory = TempPath;
-                //psi.Verb = "runas"; //This runs the cmd as administrator
-                psi.Arguments = "/c chcp 65001 &&" +
-                    "ffmpeg -allowed_extensions ALL -i playlist.m3u8 -acodec copy -vcodec copy \"" + path + ".mkv\" && "+
-                    "pause";
+                var psi = new ProcessStartInfo{
+                    UseShellExecute = false,
+                    CreateNoWindow = false, //This hides the cmd prompt that usually shows
+                    FileName = "cmd.exe",
+                    WorkingDirectory = TempPath,
+                    //psi.Verb = "runas"; //This runs the cmd as administrator
+                    Arguments = "/c chcp 65001 &&" +
+                    "ffmpeg -allowed_extensions ALL -i playlist.m3u8 -acodec copy -vcodec copy \"" + path + ".mkv\" && " +
+                    "pause"
+                };
 
-                var process = new Process();
-                process.StartInfo = psi;
+                var process = new Process{
+                    StartInfo = psi
+                };
                 process.Start();
                 process.WaitForExit();
             }
@@ -106,7 +112,16 @@ class BetterAnime{
             Directory.Delete(TempPath, true);
             return true;
         }
-        catch(Exception e){
+        catch(Exception ex){
+
+            string message = "";
+            message += new string('-', 10) + "\n";
+            message += "Date : " + DateTime.Now.ToString() + "\n";
+            message += ex.GetType().FullName + "\n";
+            message += "Message : " + ex.Message + "\n";
+            message += "StackTrace : " + ex.StackTrace + "\n\n";
+
+            File.WriteAllText(CONST.ERROR_LOG_PATH, message);
             return false;
         }
     }

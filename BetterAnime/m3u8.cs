@@ -12,7 +12,7 @@ class M3U8{
     static public async Task<string> GetPlaylist(string url){
 
         HtmlNode html = await Web.GetHtmlAsync(url);
-        Regex parseIframe = new Regex("<iframe src=\"([^\"]*)\"");
+        Regex parseIframe = new ("<iframe src=\"([^\"]*)\"");
 		string playerUrl, newPlayerUrl, m3u8Url, playlist;
 		refererUrl = url;
 		Resolution bestQuality;
@@ -28,7 +28,7 @@ class M3U8{
 
 		// changePlayer
         bestQuality = SelectBestResolution(html.OuterHtml);
-        newPlayerUrl = await ChangePlayerQuality(bestQuality.token1, bestQuality.token2);
+        newPlayerUrl = await ChangePlayerQuality(bestQuality.Token1, bestQuality.Token2);
 
         // get playlist m3u8
         m3u8Url = await GetNewPlaylistUrl(newPlayerUrl);
@@ -37,24 +37,23 @@ class M3U8{
         return playlist;
     }
 
-	record Resolution (string token1, string token2);
+	record Resolution (string Token1, string Token2);
     static private Resolution SelectBestResolution(string html){
 
-        Regex QualityRegex = new Regex("qualityString\\[\\\"(\\d+)p\\\"\\] = \\\"([^\\\"]*)\\\"");
-        Regex TokenRegex = new Regex("_token:\"([^\"]*)\"");
+        Regex QualityRegex = new ("qualityString\\[\\\"(\\d+)p\\\"\\] = \\\"([^\\\"]*)\\\"");
+        Regex TokenRegex = new ("_token:\"([^\"]*)\"");
 		MatchCollection qualities;
 		string token2;
-		Resolution selectedResolution = null;
+		Resolution? selectedResolution = null;
 		int q = 0;
 
         if (!QualityRegex.IsMatch(html) || !TokenRegex.IsMatch(html))
-            throw new Exception();
+            throw new Exception("SelectBestResolution exception");
 
         qualities = QualityRegex.Matches(html);
         token2 = TokenRegex.Match(html).Groups[1].Value;
 
-        foreach (Match quality in qualities)
-        {
+        foreach (Match quality in qualities){
             var token1 = quality.Groups[2].Value;
             var qq = int.Parse(quality.Groups[1].Value);
             if (q < qq)
@@ -69,9 +68,9 @@ class M3U8{
 
     static private async Task<string> ChangePlayerQuality(string quality, string token){
 
-        RestRequest request = new RestRequest(CONST.BETTERANIME_CHANGE_PLAYER_ENDPOINT, Method.Post);
+        RestRequest request = new(CONST.BETTERANIME_CHANGE_PLAYER_ENDPOINT, Method.Post);
 		RestResponse response;
-		Regex urlRegex = new Regex("\"frameLink\":\"([^\"]*)\"");
+		Regex urlRegex = new ("\"frameLink\":\"([^\"]*)\"");
 		string newPlayerUrl;
 
         request.AddHeader("origin", CONST.BETTERANIME_ROOT_ENDPOINT);
@@ -85,7 +84,7 @@ class M3U8{
         response = await Web.AsyncRequest(request);
 
         if (!urlRegex.IsMatch(response.Content))
-            throw new Exception();
+            throw new ("ChangePlayerQuality exception");
 
 		newPlayerUrl = urlRegex.Match(response.Content).Groups[1].Value.Replace("\\/", "/");
         return newPlayerUrl;
@@ -93,7 +92,7 @@ class M3U8{
 
     static private async Task<string> GetNewPlaylistUrl(string playerUrl){
 
-        RestRequest request = new RestRequest(playerUrl, Method.Get);
+        RestRequest request = new (playerUrl, Method.Get);
 		RestResponse response;
 		Regex urlParser;
 		string m3u8;
@@ -104,7 +103,7 @@ class M3U8{
         urlParser = new Regex("\"file\":\"([^\"]*)\"");
 
         if (!urlParser.IsMatch(response.Content))
-            throw new Exception();
+            throw new ("GetNewPlaylistUrl exception");
 
         m3u8 = urlParser.Match(response.Content).Groups[1].Value.Replace("\\/", "/"); // keep parameters
         //m3u8 = m3u8.Substring(0, m3u8.IndexOf(".m3u8") + 5); // skip parameters
@@ -117,9 +116,9 @@ class M3U8{
     static private async Task<string> ParsePaylist(string m3u8Url){
 
         RestResponse response;
-		Regex playlistRegex = new Regex("#EXTINF:[^\n]*\n([^\n]*)");
-		Regex masterRegex = new Regex("RESOLUTION=\\d+x(\\d+)\n([^\n]*)");
-		RestRequest request = new RestRequest(m3u8Url, Method.Get);
+		Regex playlistRegex = new ("#EXTINF:[^\n]*\n([^\n]*)");
+		Regex masterRegex = new ("RESOLUTION=\\d+x(\\d+)\n([^\n]*)");
+		RestRequest request = new (m3u8Url, Method.Get);
 		string m3u8;
 
 		request.AddHeader("referer", refererUrl);
@@ -149,29 +148,28 @@ class M3U8{
         else if (playlistRegex.IsMatch(m3u8))
             return m3u8;
         else
-            throw new Exception();
+            throw new ("ParsePaylist exception");
     }
 	
     static public async Task<List<Segment>> ReplacePlaylist(string playlist, string path){
 
         string replacedplaylist = playlist;
-        Regex KeyRegex = new Regex("URI=\"([^\"]*)\"");
-        Regex PlaylistRegex = new Regex("#EXTINF:[^\n]*\n([^\n]*)");
+        Regex KeyRegex = new ("URI=\"([^\"]*)\"");
+        Regex PlaylistRegex = new ("#EXTINF:[^\n]*\n([^\n]*)");
 		MatchCollection matches;
 		List<Segment> list;
 
         // Download .KEY
-        if (KeyRegex.IsMatch(playlist))
-        {
+        if (KeyRegex.IsMatch(playlist)){
             string keyUrl = KeyRegex.Match(playlist).Groups[1].Value;
             replacedplaylist = playlist.Replace(keyUrl, "key.key");
             
-			await Download.FileRequest(keyUrl, path + "key.key");
+			await Download.FileRequest(keyUrl, path + "key.key", Download.cts.Token);
         }
 
         // Replace playlist.m3u8
         if (!PlaylistRegex.IsMatch(playlist))
-            throw new Exception();
+            throw new ("ReplacePlaylist exception");
 
         matches = PlaylistRegex.Matches(playlist);
         list = new List<Segment>();
