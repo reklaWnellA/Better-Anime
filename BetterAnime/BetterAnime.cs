@@ -6,10 +6,10 @@ using System.Web;
 namespace BetterAnime;
 
 class BetterAnime{
-    public static async Task<List<Serie>?> Search(string animeSearch){
+    public static async Task<List<Anime>?> Search(string animeSearch){
 
         string url = string.Format(CONST.BETTERANIME_SEARCH_ENDPOINT, HttpUtility.UrlEncode(animeSearch));
-        var list = new List<Serie>();
+        var list = new List<Anime>();
         HtmlNode html = await Web.GetHtmlAsync(url);
         Regex parseAnimes = new (CONST.BETTERANIME_SEARCH_REGEX);
         MatchCollection animes;
@@ -26,12 +26,12 @@ class BetterAnime{
             if (animeUrl.StartsWith('/'))
                 animeUrl = CONST.BETTERANIME_ROOT_ENDPOINT + animeUrl;
 
-            list.Add(new Serie(animeName, animeUrl));
+            list.Add(new Anime(animeName, animeUrl));
         }
         return list;
     }
 
-    public static async Task<List<Episode>?> GetEpisodes(Serie serie){
+    public static async Task<List<Episode>?> GetEpisodes(Anime serie){
 
         HtmlNode html = await Web.GetHtmlAsync(serie.Url);
         var list = new List<Episode>();
@@ -80,53 +80,71 @@ class BetterAnime{
             if (!Directory.Exists(pathNoTitle))
                 Directory.CreateDirectory(pathNoTitle);
 
+            if (File.Exists(path)){
+                Console.WriteLine("Episode already downloaded, skipping episode".ToColor(Color.Green));
+                return true;
+            }
+
             string playlist = await M3U8.GetPlaylist(episode.Url);
             bool isMp4 = playlist.Contains(".mp4");
 
             if (isMp4){
-                Console.WriteLine("Downloading mp4 file");
+                Console.WriteLine("Downloading mp4 file".ToColor(Color.Yellow));
                 await Download.Mp4(playlist, path, Download.cts.Token);
             }
             else{ // m3u8
                 Directory.CreateDirectory(tempPath);
 
-                Console.WriteLine("Downloading m3u8 segments");
+                Console.WriteLine("Downloading m3u8 segments".ToColor(Color.Yellow));
                 var segmentList = await M3U8.ReplacePlaylist(playlist, tempPath);
                 await Download.Segments(segmentList);
+            }
+
+            // m3u8
+            if (!isMp4){
+                if (!Download.cts.IsCancellationRequested){
+                    // Join Segments
+                    Console.WriteLine("Merging segments".ToColor(Color.Yellow));
+                    {
+                        var psi = new ProcessStartInfo{
+                            UseShellExecute = false,
+                            // #if !DEBUG
+                                CreateNoWindow = true, //This hides the cmd prompt that usually shows
+                            // #else
+                            //     CreateNoWindow = false,
+                            // #endif
+                            FileName = "cmd.exe",
+                            WorkingDirectory = CONST.CURRENT_DIR,
+                            //Verb = "runas", //This runs the cmd as administrator
+                            Arguments = "/c chcp 65001 &&" +
+                                $"ffmpeg -allowed_extensions ALL -i \"{tempPath}playlist.m3u8\" -acodec copy -vcodec copy \"{path}\" && " +
+                                // #if DEBUG
+                                //     "pause"
+                                // #else
+                                    "exit"
+                                // #endif
+                        };
+
+                        var process = new Process{
+                            StartInfo = psi
+                        };
+                        process.Start();
+                        process.WaitForExit();
+                    }
+                }
+                
+                // Delete folder
+                // #if !DEBUG
+                    Directory.Delete(tempPath, true);
+                // #endif
             }
 
             if (Download.cts.IsCancellationRequested){
                 Download.cts = new CancellationTokenSource();
                 return false;
             }
-
-
-            // m3u8
-            if (!isMp4){
-                // Join Segments
-                System.Console.WriteLine("Merging segments");
-                {
-                    var psi = new ProcessStartInfo{
-                        UseShellExecute = false,
-                        CreateNoWindow = true, //This hides the cmd prompt that usually shows
-                        FileName = "cmd.exe",
-                        WorkingDirectory = CONST.CURRENT_DIR,
-                        //Verb = "runas", //This runs the cmd as administrator
-                        Arguments = "/c chcp 65001 &&" +
-                            "ffmpeg -allowed_extensions ALL -i \"" + tempPath + "playlist.m3u8\" -acodec copy -vcodec copy \"" + path + ".mkv\" && " +
-                            "exit"
-                    };
-
-                    var process = new Process{
-                        StartInfo = psi
-                    };
-                    process.Start();
-                    process.WaitForExit();
-                }
-
-                // Delete folder
-                Directory.Delete(tempPath, true);
-            }
+            
+            Console.WriteLine("Episode downloaded succesfully!".ToColor(Color.Green));
             return true;
         }
         catch(Exception ex){

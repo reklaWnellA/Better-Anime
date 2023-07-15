@@ -1,55 +1,112 @@
-﻿namespace BetterAnime;
+﻿using System.Reflection.Metadata;
+using System.Runtime.InteropServices;
+
+namespace BetterAnime;
 
 class Program{
 	static async Task Main(){
 
-		string path = $"{CONST.CURRENT_DIR}\\aaa\\";
-		CONST.DOWNLOAD_THREADS = 100;
-		CONST.RESTCLIENT_SAVE_COOKIES = true;
-
 		// Set exit event handler
-		AppDomain.CurrentDomain.ProcessExit += OnApplicationExit;
+		AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
+		Console.CancelKeyPress += OnCancelKeyPress;
 
-		// Set cookies if any
-		if (CONST.RESTCLIENT_SAVE_COOKIES)
-			Web.ReadCookiesFromFile();
-
-		List<Serie>? search;
+		Anime animeSelected;
 		List<Episode>? episodes;
 
+		// Set configs
+		CONST.DOWNLOAD_PATH = @"C:\Users\Allen\Videos\Animes\";
+		CONST.DOWNLOAD_THREADS = 100;
+		CONST.RESTCLIENT_SAVE_COOKIES = true;
+		Config.Set();
+
+
 		// Search
-		search = await BetterAnime.Search("Bleach: Sennen Kessen-hen");
-		if (search is null || search.Count == 0){
-			Console.WriteLine("nothing was found");
-			return;
-		}
+		Console.Write($"{Color.Cyan.ToPattern()}Search: {Color.Reset.ToPattern()}");
+		animeSelected = await Search();
 
 		// Get Episodes
-		episodes = await BetterAnime.GetEpisodes(search.FirstOrDefault());
-		if (episodes is null){
-			Console.WriteLine("was not possible to get episodes");
-			return;
-		}
+		episodes = await GetEpisodes(animeSelected);
+		if (episodes is null) return;
 
 		// Download
-		Console.WriteLine($"Episodes Count: {episodes.Count}\n");
-		foreach (var episode in episodes){
-			if (episode is not null){
-				Console.WriteLine(new string('-', 10) + "\n");
-				Console.WriteLine($"Downloading: {episode.Title}");
-				bool success = await BetterAnime.DownloadEpisode(episode, path + episode.Title);
-
-				if (!success)
-					Console.WriteLine("an error occurred while downloading the episode!\nerror was saved to log file, skipping episode...");
-				Console.WriteLine();
-			}
-		}
-
-		Console.WriteLine("END!");
+		await DownloadEpisodes(animeSelected, episodes);
+		
+		Console.WriteLine("Nothing more to download!".ToColor(Color.Green));
+		Console.ReadLine();
 	}
 
-	static void OnApplicationExit(object sender, EventArgs e){
+	static async Task<Anime> Search(){
+
+		string? search;
+		List<Anime>? results;
+		int selectedOption;
+
+		while(true){
+			search = Console.ReadLine();
+			if(!string.IsNullOrWhiteSpace(search))
+				break;
+			else
+				Console.WriteLine("Search a valid anime!".ToColor(Color.Red));
+		}
+
+		results = await BetterAnime.Search(search);
+
+		if(!(results?.Any() ?? false)){
+			Console.WriteLine("No anime was found with this name!".ToColor(Color.Red));
+			return await Search();
+		}
+
+		selectedOption = Show.Menu(results.Select(a => a.Name).ToArray());
+		return results[selectedOption];
+	}
+
+	static async Task<List<Episode>?> GetEpisodes(Anime serie){
+
+		List<Episode>? episodes;
+
+		Console.WriteLine("Getting ".ToColor(Color.Cyan) +
+			$"{serie.Name.ToColor(Color.Yellow)}" + " episodes...".ToColor(Color.Cyan));
+		episodes = await BetterAnime.GetEpisodes(serie);
+
+		if(!(episodes?.Any() ?? false)){
+			Console.WriteLine("An error occurred trying get anime episodes".ToColor(Color.Red));
+			return null;
+		}
+
+		return episodes;
+	}
+
+	static async Task DownloadEpisodes(Anime anime, List<Episode> episodes){
+
+		CONST.ANIME_PATH = CONST.DOWNLOAD_PATH + string.Join("#", anime.Name.Split(Path.GetInvalidPathChars())) + "\\";
+
+		Console.WriteLine($"{episodes.Count} episodes found\n".ToColor(Color.Cyan));
+		foreach (var episode in episodes){
+			
+			Console.WriteLine($"{new string('-', 10)}\n".ToColor(Color.Yellow));
+			Console.WriteLine($"Downloading: {episode.Title}".ToColor(Color.Cyan));
+
+			string episodePath = CONST.ANIME_PATH + string.Join("#", episode.Title.Split(Path.GetInvalidFileNameChars())) + ".mp4";
+			bool success = await BetterAnime.DownloadEpisode(episode, episodePath);
+
+			if (!success)
+				Console.WriteLine("an error occurred while downloading the episode!\n".ToColor(Color.Red) +
+					"stack trace was saved to errorlog.txt, skipping episode...".ToColor(Color.Yellow));
+			
+			Console.WriteLine();
+		}
+	}
+
+	static void OnProcessExit(object sender, EventArgs e) =>
+		Dispose();
+	static void OnCancelKeyPress(object sender, ConsoleCancelEventArgs e) =>
+		Environment.Exit(1);
+	
+	static void Dispose(){
+		Console.WriteLine($"\n\n{new string('-', 10)}\nDisposing\n{new string('-', 10)}".ToColor(Color.Red));
 		Download.cts.Cancel();
+		Thread.Sleep(1000); // wait for all threads to finish
+		Download.cts.Dispose();
 		if (CONST.RESTCLIENT_SAVE_COOKIES)
 			Web.SaveCookiesToFile();
 	}

@@ -1,9 +1,9 @@
 namespace BetterAnime;
 
-class Serie{
+class Anime{
 	public string Name, Url;
 
-	public Serie(string name, string url){
+	public Anime(string name, string url){
 		
 		Name = name.Trim().DecodeHtmlAndUnicodes();
 		Url = url.Replace("\\/", "/");

@@ -48,7 +48,7 @@ class Web{
 
 	static public void SaveCookiesToFile(){
 		string cookies = "";
-		foreach(Cookie cookie in client.Options.CookieContainer.GetAllCookies())
+		foreach(Cookie cookie in Client.Options.CookieContainer?.GetAllCookies())
 			cookies += cookie.Name + "=" + cookie.Value + "\n";
 		if (!string.IsNullOrEmpty(cookies))
 			File.WriteAllText(CONST.COOKIES_PATH, cookies);

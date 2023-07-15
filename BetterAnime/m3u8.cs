@@ -13,14 +13,14 @@ class M3U8{
 
         HtmlNode html = await Web.GetHtmlAsync(url);
         Regex parseIframe = new ("<iframe src=\"([^\"]*)\"");
-		string playerUrl, newPlayerUrl, m3u8Url, playlist;
+		string playerUrl, newPlayerUrl, playlistUrl, playlist;
 		refererUrl = url;
 		Resolution bestQuality;
 
         if (!parseIframe.IsMatch(html.OuterHtml))
             return null;
 
-        Console.WriteLine("Getting direct url");
+        Console.WriteLine("Getting direct url".ToColor(Color.Yellow));
         playerUrl = parseIframe.Match(html.OuterHtml).Groups[1].Value;
 
         // get cookies
@@ -31,16 +31,17 @@ class M3U8{
         bestQuality = SelectBestResolution(html.OuterHtml);
         newPlayerUrl = await ChangePlayerQuality(bestQuality.Token1, bestQuality.Token2);
 
-        Console.WriteLine("Best quality available: " + bestQuality.Quality);
+        Console.WriteLine("Best quality available: ".ToColor(Color.Yellow) +
+            $"{bestQuality.Quality}".ToColor(Color.Cyan));
 
         // get playlist m3u8
-        m3u8Url = await GetNewPlaylistUrl(newPlayerUrl);
-        if (m3u8Url.Contains(".m3u8"))
-            playlist = await ParsePaylist(m3u8Url);
-        else if (m3u8Url.Contains(".mp4"))
-            return m3u8Url;
+        playlistUrl = await GetNewPlaylistUrl(newPlayerUrl);
+        if (playlistUrl.Contains(".m3u8"))
+            playlist = await ParsePaylist(playlistUrl);
+        else if (playlistUrl.Contains(".mp4"))
+            return playlistUrl;
         else
-            throw new Exception("GetPlaylist exception, m3u8Url doesnt contain .m3u8 or .mp4");
+            throw new Exception("GetPlaylist exception, direct url doesnt contain .m3u8 or .mp4");
 
         return playlist;
     }
@@ -224,7 +225,7 @@ class M3U8{
             if (url.Contains("https://"))
                 url = url.Substring(url.LastIndexOf("https://"));
 
-            replacedplaylist = replacedplaylist.Replace(oldUrlToReplace, path.Replace("\\","\\\\") + segment);
+            replacedplaylist = replacedplaylist.Replace(oldUrlToReplace, path + segment);
             list.Add(new Segment(url, path + segment));
         }
 

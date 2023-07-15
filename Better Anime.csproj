@@ -2,12 +2,13 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
-    <RootNamespace>Better_Anime</RootNamespace>
+    <RootNamespace>BetterAnime</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="RestSharp" Version="110.2.0"/>
     <PackageReference Include="HtmlAgilityPack" Version="1.11.49"/>
+    <None Include="ffmpeg.exe" CopyToOutputDirectory="Always" />
   </ItemGroup>
 </Project>

@@ -44,7 +44,7 @@ class Download{
 
         if (ct.IsCancellationRequested)
             return;
-
+        
         RestResponse response;
         RestRequest request = new (url, Method.Get);
         request.AddHeader("origin", CONST.BETTERANIME_ROOT_ENDPOINT);
@@ -55,8 +55,12 @@ class Download{
         else{
             if (retry < CONST.DOWNLOAD_SEGMENT_MAX_RETRIES)
 				await FileRequest(url, path, ct, ++retry);
-			else
+			else{
+                string message = $"SEGMENT MAX RETRIES REACHED, URL: {url}";
+                File.WriteAllText(CONST.ERROR_LOG_PATH, message);
+                Console.WriteLine(message.ToColor(Color.Red));
 				cts.Cancel();
+            }
         }
     }
     
@@ -77,7 +81,7 @@ class Download{
         request.AddHeader("referer", CONST.BETTERANIME_ROOT_ENDPOINT);
 
         using (var stream = await Web.Client.DownloadStreamAsync(request, ct))
-        using (var output = new FileStream(path + ".mp4", FileMode.Create))
+        using (var output = new FileStream(path, FileMode.Create))
             await stream.CopyToAsync(output, ct);
     }
 }
