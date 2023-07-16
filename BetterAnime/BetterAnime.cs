@@ -151,10 +151,10 @@ class BetterAnime{
 
             string message = "";
             message += new string('-', 10) + "\n";
-            message += "Date : " + DateTime.Now.ToString() + "\n";
+            message += "Date: " + DateTime.Now.ToString() + "\n";
             message += ex.GetType().FullName + "\n";
-            message += "Message : " + ex.Message + "\n";
-            message += "StackTrace : " + ex.StackTrace + "\n\n";
+            message += "Message: " + ex.Message + "\n";
+            message += "StackTrace: " + ex.StackTrace + "\n\n";
 
             File.WriteAllText(CONST.ERROR_LOG_PATH, message);
             return false;

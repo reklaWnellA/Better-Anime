@@ -43,7 +43,7 @@ class Download{
 
         if (ct.IsCancellationRequested)
             return;
-        
+
         RestResponse response;
         RestRequest request = new (url, Method.Get);
         request.AddHeader("origin", CONST.BETTERANIME_ROOT_ENDPOINT);
@@ -55,7 +55,10 @@ class Download{
             if (retry < CONST.DOWNLOAD_SEGMENT_MAX_RETRIES)
 				await FileRequest(url, path, ct, ++retry);
 			else{
-                string message = $"SEGMENT MAX RETRIES REACHED, URL: {url}";
+                string message = "";
+                message += new string('-', 10) + "\n";
+                message += "Date: " + DateTime.Now.ToString() + "\n";
+                message += $"SEGMENT MAX RETRIES REACHED, URL: {url}\n\n";
                 File.WriteAllText(CONST.ERROR_LOG_PATH, message);
                 Console.WriteLine(message.ToColor(Color.Red));
 				cts.Cancel();

@@ -10,9 +10,9 @@ class Program{
 		Anime animeSelected;
 		List<Episode>? episodes;
 
-		// Read and Set configs
-		Config.Read();
+		// Configs
 		Config.Set();
+		Config.Read();
 
 		// Search
 		animeSelected = await Search();
