@@ -9,8 +9,9 @@ class Show{
 		string space = "   ";
 		string color = $"{space}{Color.Green.ToPattern()}";
 
+		Console.WriteLine("Press Up/Down arrow keys to select!".ToColor(Color.Yellow));
 		while(!isSelected){
-			Console.SetCursorPosition(left,top);
+			Console.SetCursorPosition(left,top+1);
 
 			for (int i = 0; i < options.Length; i++)
 				Console.WriteLine($"{(selectedOption == i ? color : space)}{options[i]}{Color.Reset.ToPattern()}");
@@ -34,7 +35,7 @@ class Show{
 		for (int i = 0; i < options.Length; i++)
 			Console.Write(new string(' ', Console.BufferWidth)); // Console.WindowWidth
 		Console.SetCursorPosition(left,top);
-		Console.WriteLine($"{(color)}{options[selectedOption]}{Color.Reset.ToPattern()}");
+		Console.WriteLine($"{color}{options[selectedOption]}{Color.Reset.ToPattern()}");
 
 		return selectedOption;
 	}
