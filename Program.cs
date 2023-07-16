@@ -1,7 +1,4 @@
-﻿using System.Reflection.Metadata;
-using System.Runtime.InteropServices;
-
-namespace BetterAnime;
+﻿namespace BetterAnime;
 
 class Program{
 	static async Task Main(){
@@ -21,7 +18,6 @@ class Program{
 
 
 		// Search
-		Console.Write($"{Color.Cyan.ToPattern()}Search: {Color.Reset.ToPattern()}");
 		animeSelected = await Search();
 
 		// Get Episodes
@@ -42,6 +38,7 @@ class Program{
 		int selectedOption;
 
 		while(true){
+			Console.Write($"Search: ".ToColor(Color.Cyan));
 			search = Console.ReadLine();
 			if(!string.IsNullOrWhiteSpace(search))
 				break;
@@ -78,17 +75,18 @@ class Program{
 
 	static async Task DownloadEpisodes(Anime anime, List<Episode> episodes){
 
-		CONST.ANIME_PATH = CONST.DOWNLOAD_PATH + string.Join("#", anime.Name.Split(Path.GetInvalidPathChars())) + "\\";
+		CONST.ANIME_PATH = CONST.DOWNLOAD_PATH + string.Join("#", anime.Name.Split(Path.GetInvalidFileNameChars())) + "\\";
 
 		Console.WriteLine($"{episodes.Count} episodes found\n".ToColor(Color.Cyan));
 		foreach (var episode in episodes){
-			
+
 			Console.WriteLine($"{new string('-', 10)}\n".ToColor(Color.Yellow));
 			Console.WriteLine($"Downloading: {episode.Title}".ToColor(Color.Cyan));
 
 			string episodePath = CONST.ANIME_PATH + string.Join("#", episode.Title.Split(Path.GetInvalidFileNameChars())) + ".mp4";
 			bool success = await BetterAnime.DownloadEpisode(episode, episodePath);
 
+			if (disposing) break;
 			if (!success)
 				Console.WriteLine("an error occurred while downloading the episode!\n".ToColor(Color.Red) +
 					"stack trace was saved to errorlog.txt, skipping episode...".ToColor(Color.Yellow));
@@ -102,7 +100,9 @@ class Program{
 	static void OnCancelKeyPress(object sender, ConsoleCancelEventArgs e) =>
 		Environment.Exit(1);
 	
+	static bool disposing = false;
 	static void Dispose(){
+		disposing = true;
 		Console.WriteLine($"\n\n{new string('-', 10)}\nDisposing\n{new string('-', 10)}".ToColor(Color.Red));
 		Download.cts.Cancel();
 		Thread.Sleep(1000); // wait for all threads to finish

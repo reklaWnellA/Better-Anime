@@ -13,8 +13,7 @@ class Download{
 
         while(totalCount > 0){
 
-            if(Volatile.Read(ref runningThreadsCount) < CONST.DOWNLOAD_THREADS)
-            {
+            if(Volatile.Read(ref runningThreadsCount) < CONST.DOWNLOAD_THREADS){
                 string url = list[totalCount - 1].Url;
                 string segPath = list[totalCount - 1].Path;
 
