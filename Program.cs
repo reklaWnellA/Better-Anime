@@ -10,12 +10,9 @@ class Program{
 		Anime animeSelected;
 		List<Episode>? episodes;
 
-		// Set configs
-		CONST.DOWNLOAD_PATH = @"C:\Users\Allen\Videos\Animes\";
-		CONST.DOWNLOAD_THREADS = 100;
-		CONST.RESTCLIENT_SAVE_COOKIES = true;
+		// Read and Set configs
+		Config.Read();
 		Config.Set();
-
 
 		// Search
 		animeSelected = await Search();

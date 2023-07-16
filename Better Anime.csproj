@@ -10,5 +10,6 @@
     <PackageReference Include="RestSharp" Version="110.2.0"/>
     <PackageReference Include="HtmlAgilityPack" Version="1.11.49"/>
     <None Include="ffmpeg.exe" CopyToOutputDirectory="Always" />
+    <None Include="config.ini" CopyToOutputDirectory="Always" />
   </ItemGroup>
 </Project>

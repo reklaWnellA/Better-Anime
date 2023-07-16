@@ -4,6 +4,7 @@ public class CONST {
 
 	// Paths
 	public static string CURRENT_DIR = Directory.GetCurrentDirectory();
+	public static string CONFIG_PATH = $"{CURRENT_DIR}\\config.ini";
 	public static string COOKIES_PATH = $"{CURRENT_DIR}\\cookies.txt";
 	public static string DOWNLOAD_PATH = $"{CURRENT_DIR}\\Animes\\";
 	public static string ANIME_PATH = "";
