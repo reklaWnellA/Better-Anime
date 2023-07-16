@@ -10,6 +10,9 @@ class Download{
         int totalCount = list.Count;
         int runningThreadsCount = 0;
         CancellationToken ct = cts.Token;
+        (int left, int top) = Console.GetCursorPosition();
+        int progress = 0;
+        int lastProgress = -1;
 
         while(totalCount > 0){
 
@@ -20,13 +23,14 @@ class Download{
                 Interlocked.Increment(ref runningThreadsCount);
 				Interlocked.Decrement(ref totalCount);
 
-                Thread thread = new (async () =>
-                {
+                Thread thread = new (async () => {
                     await FileRequest(url, segPath, ct);
-
                     Interlocked.Decrement(ref runningThreadsCount);
+                    Interlocked.Increment(ref progress);
                 });
                 thread.Start();
+
+                Show.DownloadProgress(left, top, lastProgress, progress, list.Count);
             }
 
             // wait some thread to finish
@@ -35,8 +39,12 @@ class Download{
         }
 
         // wait remaining threads
-        while (Volatile.Read(ref runningThreadsCount) > 0)
+        while (Volatile.Read(ref runningThreadsCount) > 0){
             await Task.Delay(100);
+            Show.DownloadProgress(left, top, lastProgress, progress, list.Count);
+        }
+
+        Console.WriteLine();
     }
 
     static public async Task FileRequest(string url, string path, CancellationToken ct, int retry = 0){

@@ -13,19 +13,34 @@ class Program{
 		// Configs
 		Config.Set();
 		Config.Read();
-
-		// Search
-		animeSelected = await Search();
-
-		// Get Episodes
-		episodes = await GetEpisodes(animeSelected);
-		if (episodes is null) return;
-
-		// Download
-		await DownloadEpisodes(animeSelected, episodes);
 		
-		Console.WriteLine("Nothing more to download!".ToColor(Color.Green));
-		Console.ReadLine();
+		(int left, int top) = Console.GetCursorPosition();
+		while(true){
+			Console.SetCursorPosition(left, top);
+
+			// Search
+			animeSelected = await Search();
+
+			// Get Episodes
+			episodes = await GetEpisodes(animeSelected);
+			if (episodes is null) return;
+			episodes = Show.Episodes(episodes);
+
+			// Download
+			await DownloadEpisodes(animeSelected, episodes);
+
+			Console.WriteLine("Nothing more to download!\n".ToColor(Color.Green) +
+				$"Press ".ToColor(Color.Yellow) + "R".ToColor(Color.Cyan) +
+				" to search another anime to download.".ToColor(Color.Yellow));
+			var key = Console.ReadKey();
+			if (key.KeyChar != 'r' && key.KeyChar != 'R')
+				break;
+
+			// clear console
+			Console.SetCursorPosition(left,top);
+			for (int i = 0; i < Console.WindowHeight - top; i++)
+				Console.Write(new string(' ', Console.BufferWidth));
+		}
 	}
 
 	static async Task<Anime> Search(){
@@ -67,6 +82,8 @@ class Program{
 			return null;
 		}
 
+		Console.WriteLine($"{episodes.Count} episodes found\n".ToColor(Color.Cyan));
+
 		return episodes;
 	}
 
@@ -74,7 +91,6 @@ class Program{
 
 		CONST.ANIME_PATH = CONST.DOWNLOAD_PATH + string.Join("#", anime.Name.Split(Path.GetInvalidFileNameChars())) + "\\";
 
-		Console.WriteLine($"{episodes.Count} episodes found\n".ToColor(Color.Cyan));
 		foreach (var episode in episodes){
 
 			Console.WriteLine($"{new string('-', 10)}\n".ToColor(Color.Yellow));
@@ -100,7 +116,7 @@ class Program{
 	static bool disposing = false;
 	static void Dispose(){
 		disposing = true;
-		Console.WriteLine($"\n\n{new string('-', 10)}\nDisposing\n{new string('-', 10)}".ToColor(Color.Red));
+		Console.WriteLine($"\n\n\n{new string('-', 10)}\nDisposing\n{new string('-', 10)}".ToColor(Color.Red));
 		Download.cts.Cancel();
 		Thread.Sleep(1000); // wait for all threads to finish
 		Download.cts.Dispose();

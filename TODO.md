@@ -1,1 +1,1 @@
-- [ ] display time elapsed and download speed while downloading
+- [ ] cli

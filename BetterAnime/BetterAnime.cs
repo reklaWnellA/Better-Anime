@@ -8,11 +8,18 @@ namespace BetterAnime;
 class BetterAnime{
     public static async Task<List<Anime>?> Search(string animeSearch){
 
-        string url = string.Format(CONST.BETTERANIME_SEARCH_ENDPOINT, HttpUtility.UrlEncode(animeSearch));
+        string url = "";
         var list = new List<Anime>();
-        HtmlNode html = await Web.GetHtmlAsync(url);
+        HtmlNode html;
         Regex parseAnimes = new (CONST.BETTERANIME_SEARCH_REGEX);
         MatchCollection animes;
+        
+        if (animeSearch.Contains("https://"))
+            url = animeSearch;
+        else
+            url = string.Format(CONST.BETTERANIME_SEARCH_ENDPOINT, HttpUtility.UrlEncode(animeSearch));
+
+        html = await Web.GetHtmlAsync(url);
 
         if (!parseAnimes.IsMatch(html.OuterHtml))
             return null;
@@ -95,7 +102,7 @@ class BetterAnime{
             else{ // m3u8
                 Directory.CreateDirectory(tempPath);
 
-                Console.WriteLine("Downloading m3u8 segments".ToColor(Color.Yellow));
+                Console.Write("Downloading m3u8 segments ".ToColor(Color.Yellow));
                 var segmentList = await M3U8.ReplacePlaylist(playlist, tempPath);
                 await Download.Segments(segmentList);
             }
