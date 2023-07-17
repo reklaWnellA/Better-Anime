@@ -29,6 +29,7 @@ class Program{
 			// Download
 			await DownloadEpisodes(animeSelected, episodes);
 
+			// Retry?
 			Console.WriteLine("Nothing more to download!\n".ToColor(Color.Green) +
 				$"Press ".ToColor(Color.Yellow) + "R".ToColor(Color.Cyan) +
 				" to search another anime to download.".ToColor(Color.Yellow));
@@ -36,10 +37,8 @@ class Program{
 			if (key.KeyChar != 'r' && key.KeyChar != 'R')
 				break;
 
-			// clear console
-			Console.SetCursorPosition(left,top);
-			for (int i = 0; i < Console.WindowHeight - top; i++)
-				Console.Write(new string(' ', Console.BufferWidth));
+			// Clear console
+			Clear.Lines(left, top, Console.WindowHeight - top + 2);
 		}
 	}
 

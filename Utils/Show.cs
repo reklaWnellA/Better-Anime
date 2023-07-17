@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-
 namespace BetterAnime;
 
 class Show{
@@ -32,11 +30,8 @@ class Show{
 			}
 		}
 
-		// clear console
-		Console.SetCursorPosition(left,top);
-		for (int i = 0; i < options.Length + 1; i++)
-			Console.Write(new string(' ', Console.BufferWidth)); // Console.WindowWidth BufferWidth
-		Console.SetCursorPosition(left,top);
+		Clear.Lines(left, top, options.Length + 1);
+		Console.SetCursorPosition(left, top);
 		Console.WriteLine($"{color}{options[selectedOption]}{Color.Reset.ToPattern()}\n");
 
 		return selectedOption;
@@ -48,18 +43,18 @@ class Show{
 
 		(int left, int top) = Console.GetCursorPosition();
 		Console.WriteLine("Use ".ToColor(Color.Yellow) + "Left/Right".ToColor(Color.Cyan) +
-			" arrow keys to change between From and To episodes\nUse ".ToColor(Color.Yellow)+
+			" arrow keys to change between episodes\nUse ".ToColor(Color.Yellow)+
 			"Up/Down".ToColor(Color.Cyan) + " arrow keys to change the episode".ToColor(Color.Yellow));
 		
 		while(!isSelected){
 			Console.SetCursorPosition(left, top+2);
-			Console.WriteLine("Number of episodes selected:".ToColor(Color.Yellow) + $" {selectedTo + 1}".ToColor(Color.Green));
+			Console.WriteLine("Number of episodes selected:".ToColor(Color.Cyan) + $" {selectedTo + 1}".ToColor(Color.Green));
 
 			string from = episodes[selectedFrom].Title;
-			from = selectingFrom ? from.ToColor(Color.Green) : from.ToColor(Color.Yellow);
+			from = selectingFrom ? from.ToColor(Color.Green) : from;
 
 			string to = selectedTo == 0 ? "Only this episode" : episodes[selectedFrom + selectedTo].Title;
-			to = !selectingFrom ? to.ToColor(Color.Green) : to.ToColor(Color.Yellow);
+			to = !selectingFrom ? to.ToColor(Color.Green) : to;
 
 			Console.WriteLine($"{from} TO {to}");
 
@@ -92,23 +87,18 @@ class Show{
 					break;
 			}
 
-			// clear
-			Console.SetCursorPosition(left, top+2);
-			for (int i = 0; i < 2 + 1; i++)
-				Console.Write(new string(' ', Console.BufferWidth));
+			Clear.Lines(left, top + 2, 3);
 		}
 
-		Console.SetCursorPosition(left, top);
-		for (int i = 0; i < 2 + 1; i++)
-				Console.Write(new string(' ', Console.BufferWidth));
+		Clear.Lines(left, top, 3);
 		Console.SetCursorPosition(left, top);
 
-		Console.WriteLine("Number of episodes selected:".ToColor(Color.Yellow) + $" {selectedTo + 1}".ToColor(Color.Green));
+		Console.WriteLine("Number of episodes selected:".ToColor(Color.Cyan) + $" {selectedTo + 1}".ToColor(Color.Green));
 
 		string sfrom = episodes[selectedFrom].Title.ToColor(Color.Green);
-		string sto = " TO ".ToColor(Color.Yellow) + episodes[selectedFrom + selectedTo].Title.ToColor(Color.Green);
+		string sto = " TO " + episodes[selectedFrom + selectedTo].Title.ToColor(Color.Green);
 
-		Console.WriteLine($"{sfrom}{(selectedTo == 0 ? "" : sto)}\n\n");
+		Console.WriteLine($"{sfrom}{(selectedTo == 0 ? "" : sto)}\n");
 
 		return episodes.GetRange(selectedFrom, selectedTo + 1);
 	}
