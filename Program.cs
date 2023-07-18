@@ -30,7 +30,7 @@ class Program{
 			await DownloadEpisodes(animeSelected, episodes);
 
 			// Retry?
-			Console.WriteLine("Nothing more to download!\n".ToColor(Color.Green) +
+			Console.WriteLine("\nNothing more to download!\n".ToColor(Color.Green) +
 				$"Press ".ToColor(Color.Yellow) + "R".ToColor(Color.Cyan) +
 				" to search another anime to download.".ToColor(Color.Yellow));
 			var key = Console.ReadKey();
@@ -38,7 +38,7 @@ class Program{
 				break;
 
 			// Clear console
-			Clear.Lines(left, top, Console.WindowHeight - top + 2);
+			Clear.Lines(left, top, Console.GetCursorPosition().Top - top + 2);
 		}
 	}
 
