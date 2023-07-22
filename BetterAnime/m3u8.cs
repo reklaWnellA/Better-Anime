@@ -31,7 +31,7 @@ class M3U8{
         bestQuality = SelectBestResolution(html.OuterHtml);
         newPlayerUrl = await ChangePlayerQuality(bestQuality.Token1, bestQuality.Token2);
 
-        Console.WriteLine("Best quality available: ".ToColor(Color.Yellow) +
+        Console.WriteLine("Quality selected: ".ToColor(Color.Yellow) +
             $"{bestQuality.Quality}".ToColor(Color.Cyan));
 
         // get playlist m3u8
@@ -65,7 +65,7 @@ class M3U8{
         foreach (Match quality in qualities){
             var token1 = quality.Groups[2].Value;
             var qq = int.Parse(quality.Groups[1].Value);
-            if (q < qq)
+            if (q < qq && qq <= CONST.BETTERANIME_MAX_QUALITY)
                 selectedResolution = new Resolution(
                     qq,
                     HttpUtility.UrlEncode(token1),
@@ -144,7 +144,7 @@ class M3U8{
             // Select Best Quality
             foreach (Match match in matches){
                 int q = int.Parse(match.Groups[1].Value);
-                if (q > quality){
+                if (q > quality && q <= CONST.BETTERANIME_MAX_QUALITY){
                     quality = q;
                     link = match.Groups[2].Value.Replace("\\/", "/");
                     if (!link.Contains("https://"))

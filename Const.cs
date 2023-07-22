@@ -24,4 +24,5 @@ public class CONST {
 	public static string BETTERANIME_SEARCH_ENDPOINT = "https://betteranime.net/autocompleteajax?term={0}";
 	public static string BETTERANIME_SEARCH_REGEX = "\"title\":\"([^\"]*)\",\"image\":\"[^\"]*\",\"url\":\"([^\"]*)\"";
 	public static string BETTERANIME_CHANGE_PLAYER_ENDPOINT = "https://betteranime.net/changePlayer";
+	public static int BETTERANIME_MAX_QUALITY = 1080;
 }

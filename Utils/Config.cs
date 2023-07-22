@@ -15,6 +15,8 @@ class Config{
 		Console.WriteLine("DOWNLOAD SEGMENT MAX RETRIES = ".ToColor(Color.Green)+ $"{CONST.DOWNLOAD_SEGMENT_MAX_RETRIES}".ToColor(Color.Cyan));
 		Console.WriteLine("CLIENT MAX TIMEOUT = ".ToColor(Color.Green)+ $"{CONST.RESTCLIENT_MAX_TIMEOUT}".ToColor(Color.Cyan));
 		Console.WriteLine("SAVE COOKIES = ".ToColor(Color.Green)+ $"{CONST.RESTCLIENT_SAVE_COOKIES}".ToColor(Color.Cyan));
+		Console.WriteLine("MAX QUALITY = ".ToColor(Color.Green)+ $"{CONST.BETTERANIME_MAX_QUALITY}".ToColor(Color.Cyan));
+
 
 		Console.WriteLine($"{new string('-', 10)}\n\n".ToColor(Color.Green));
 
@@ -65,6 +67,9 @@ class Config{
 				break;
 				case "save_cookies":
 					bool.TryParse(match.Groups[2].Value, out CONST.RESTCLIENT_SAVE_COOKIES);
+				break;
+				case "max_quality":
+					int.TryParse(match.Groups[2].Value, out CONST.BETTERANIME_MAX_QUALITY);
 				break;
 			}
 		}
