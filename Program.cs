@@ -2,6 +2,7 @@
 
 class Program{
 	static string searchUrl;
+	public static string currentlyDownloading = "";
 	static async Task Main(){
 
 		// Set exit event handler
@@ -108,6 +109,7 @@ class Program{
 
 			Console.WriteLine($"{new string('-', 10)}\n".ToColor(Color.Yellow));
 			Console.WriteLine($"Downloading: {episode.Title}".ToColor(Color.Cyan));
+			currentlyDownloading = $"{anime.Name} - {episode.Title}";
 
 			string episodePath = CONST.ANIME_PATH + string.Join("#", episode.Title.Split(Path.GetInvalidFileNameChars())) + ".mp4";
 			bool success = await BetterAnime.DownloadEpisode(episode, episodePath);

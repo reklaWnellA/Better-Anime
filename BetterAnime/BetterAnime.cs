@@ -162,6 +162,7 @@ class BetterAnime{
             string message = "";
             message += new string('-', 10) + "\n";
             message += "Date: " + DateTime.Now.ToString() + "\n";
+            message += $"Episode: {Program.currentlyDownloading}\n";
             message += ex.GetType().FullName + "\n";
             message += "Message: " + ex.Message + "\n";
             message += "StackTrace: " + ex.StackTrace + "\n\n";

@@ -66,6 +66,7 @@ class Download{
                 string message = "";
                 message += new string('-', 10) + "\n";
                 message += "Date: " + DateTime.Now.ToString() + "\n";
+                message += $"Episode: {Program.currentlyDownloading}\n";
                 message += $"SEGMENT MAX RETRIES REACHED, URL: {url}\n\n";
                 File.WriteAllText(CONST.ERROR_LOG_PATH, message);
                 Console.WriteLine(message.ToColor(Color.Red));
