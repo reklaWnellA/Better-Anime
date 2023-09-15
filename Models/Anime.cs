@@ -4,7 +4,8 @@ class Anime{
 	public string Name, Url;
 	public Anime(string name, string url){
 		
-		Name = name.Trim().DecodeHtmlAndUnicodes();
+		if (name is not null)
+			Name = name.Trim().DecodeHtmlAndUnicodes();
 		Url = url.Replace("\\/", "/");
 	}
 }

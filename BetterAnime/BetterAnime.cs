@@ -2,33 +2,30 @@ using HtmlAgilityPack;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Web;
+using Newtonsoft.Json;
+using System.Net;
 
 namespace BetterAnime;
 
 class BetterAnime{
     public static async Task<List<Anime>?> Search(string animeSearch){
 
-        string url = "";
+        string url;
         var list = new List<Anime>();
         HtmlNode html;
-        Regex parseAnimes = new (CONST.BETTERANIME_SEARCH_REGEX);
-        MatchCollection animes;
+        List<SearchJson>? searchJson;
         
-        if (animeSearch.Contains("https://"))
-            url = animeSearch;
-        else
-            url = string.Format(CONST.BETTERANIME_SEARCH_ENDPOINT, HttpUtility.UrlEncode(animeSearch));
-
+        url = string.Format(CONST.BETTERANIME_SEARCH_ENDPOINT, HttpUtility.UrlEncode(animeSearch));
         html = await Web.GetHtmlAsync(url);
+        searchJson = JsonConvert.DeserializeObject<List<SearchJson>>(html.OuterHtml);
+        
+        if (searchJson is null)
+            return list;
 
-        if (!parseAnimes.IsMatch(html.OuterHtml))
-            return null;
+        foreach (SearchJson anime in searchJson){
 
-        animes = parseAnimes.Matches(html.OuterHtml);
-        foreach (Match anime in animes){
-
-            string animeName = anime.Groups[1].Value;
-            string animeUrl = anime.Groups[2].Value;
+            string animeName = anime.title;
+            string animeUrl = anime.url;
 
             if (animeUrl.StartsWith('/'))
                 animeUrl = CONST.BETTERANIME_ROOT_ENDPOINT + animeUrl;
@@ -48,12 +45,18 @@ class BetterAnime{
         if (string.IsNullOrWhiteSpace(html.OuterHtml))
             return null;
 
+        // set anime name if searched by url
+        if (serie.Name is null)
+            serie.Name = html.Descendants("h2")
+                .Where(a=>a.GetAttributeValue("class","").Equals("pt-5"))
+                .FirstOrDefault().InnerText.Trim().DecodeHtmlAndUnicodes();
+
         episodesPanel = html.Descendants("ul")
             .Where(a => a.GetAttributeValue("id", "")
             .Equals("episodesList")).FirstOrDefault();
 
         if (episodesPanel is null) return null;
-        
+    
         episodes = episodesPanel.Descendants("li")
             .Where(a => a.GetAttributeValue("class", null)
             .Contains("list-group-item-action")).ToList();

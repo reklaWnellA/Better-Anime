@@ -1,6 +1,7 @@
 ﻿namespace BetterAnime;
 
 class Program{
+	static string searchUrl;
 	static async Task Main(){
 
 		// Set exit event handler
@@ -13,7 +14,7 @@ class Program{
 		// Configs
 		Config.Set();
 		Config.Read();
-		
+
 		(int left, int top) = Console.GetCursorPosition();
 		while(true){
 			Console.SetCursorPosition(left, top);
@@ -22,7 +23,10 @@ class Program{
 			animeSelected = await Search();
 
 			// Get Episodes
-			episodes = await GetEpisodes(animeSelected);
+			if (animeSelected is null)
+				episodes = await GetEpisodes(new Anime(null,searchUrl));
+			else
+				episodes = await GetEpisodes(animeSelected);
 			if (episodes is null) return;
 			episodes = Show.Episodes(episodes);
 
@@ -57,7 +61,14 @@ class Program{
 				Console.WriteLine("Search a valid anime!".ToColor(Color.Red));
 		}
 
-		results = await BetterAnime.Search(search);
+		if (search.Contains(CONST.BETTERANIME_ROOT_ENDPOINT)){
+			searchUrl = search;
+            return null;
+		}
+		else{
+			searchUrl = "";
+			results = await BetterAnime.Search(search);
+		}
 
 		if(!(results?.Any() ?? false)){
 			Console.WriteLine("No anime was found with this name!".ToColor(Color.Red));
@@ -72,8 +83,11 @@ class Program{
 
 		List<Episode>? episodes;
 
-		Console.WriteLine("Getting ".ToColor(Color.Cyan) +
-			$"{serie.Name.ToColor(Color.Yellow)}" + " episodes...".ToColor(Color.Cyan));
+		if (serie.Name is null)
+			Console.WriteLine("Getting anime name and episodes...".ToColor(Color.Cyan));
+		else
+			Console.WriteLine("Getting ".ToColor(Color.Cyan) +
+				$"{serie.Name.ToColor(Color.Yellow)}" + " episodes...".ToColor(Color.Cyan));
 		episodes = await BetterAnime.GetEpisodes(serie);
 
 		if(!(episodes?.Any() ?? false)){
@@ -102,7 +116,7 @@ class Program{
 			if (!success)
 				Console.WriteLine("an error occurred while downloading the episode!\n".ToColor(Color.Red) +
 					"stack trace was saved to errorlog.txt, skipping episode...".ToColor(Color.Yellow));
-			
+
 			Console.WriteLine();
 		}
 	}
@@ -111,7 +125,7 @@ class Program{
 		Dispose();
 	static void OnCancelKeyPress(object sender, ConsoleCancelEventArgs e) =>
 		Environment.Exit(1);
-	
+
 	static bool disposing = false;
 	static void Dispose(){
 		disposing = true;
