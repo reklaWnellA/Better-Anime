@@ -13,11 +13,13 @@ public class CONST {
 	// Downloads
 	public static int DOWNLOAD_THREADS = 100;
 	public static int DOWNLOAD_SEGMENT_MAX_RETRIES = 5;
+	public static int DOWNLOAD_SEGMENT_MAX_SHORT_RETRIES = 2;
 
 	// RestClient
 	public static int RESTCLIENT_MAX_TIMEOUT = 60_000;
 	public static string RESTCLIENT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 OPR/94.0.0.0";
 	public static bool RESTCLIENT_SAVE_COOKIES = true;
+	public static int RESTCLIENT_SHORT_TIMEOUT = 5_000;
 
 	// BetterAnime
 	public static string BETTERANIME_ROOT_ENDPOINT = "https://betteranime.net";

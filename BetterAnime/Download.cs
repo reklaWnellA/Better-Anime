@@ -13,6 +13,7 @@ class Download{
         (int left, int top) = Console.GetCursorPosition();
         int progress = 0;
         int lastProgress = -1;
+        // bool shortThreadsCreated = false;
 
         while(totalCount > 0){
 
@@ -42,6 +43,17 @@ class Download{
         while (Volatile.Read(ref runningThreadsCount) > 0){
             await Task.Delay(100);
             Show.DownloadProgress(left, top, lastProgress, progress, list.Count);
+
+            // if (Volatile.Read(ref runningThreadsCount) <= 10 && !shortThreadsCreated){
+            //     // create 5 threads for each segment with 2 max retries and 5 sec max timeout
+                
+
+            //     shortThreadsCreated = true;
+            // }
+            // else if (Volatile.Read(ref runningThreadsCount) <= 10){
+            //     // check if any segment succesfully finished and cancel cts
+            //     if()
+            // }
         }
 
         Console.WriteLine();

@@ -17,7 +17,6 @@ class Config{
 		Console.WriteLine("SAVE COOKIES = ".ToColor(Color.Green)+ $"{CONST.RESTCLIENT_SAVE_COOKIES}".ToColor(Color.Cyan));
 		Console.WriteLine("MAX QUALITY = ".ToColor(Color.Green)+ $"{CONST.BETTERANIME_MAX_QUALITY}".ToColor(Color.Cyan));
 
-
 		Console.WriteLine($"{new string('-', 10)}\n\n".ToColor(Color.Green));
 
 		if (CONST.RESTCLIENT_SAVE_COOKIES)
