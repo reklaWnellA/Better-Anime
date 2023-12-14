@@ -36,8 +36,7 @@ class Web{
 			return;
 		
 		cookies = cookies.Replace("\r\n","\n");
-		if (!cookies.Contains("\n"))
-			cookies = cookies.Replace(" ","\n");
+		cookies = cookies.Replace(" ","\n");
 		matches = cookiesRegex.Matches(cookies);
 		foreach (Match cookie in matches){
 			string name = cookie.Groups[1].Value.Trim();
