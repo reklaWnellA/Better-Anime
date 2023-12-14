@@ -36,10 +36,12 @@ class Web{
 			return;
 		
 		cookies = cookies.Replace("\r\n","\n");
+		if (!cookies.Contains("\n"))
+			cookies = cookies.Replace(" ","\n");
 		matches = cookiesRegex.Matches(cookies);
 		foreach (Match cookie in matches){
-			string name = cookie.Groups[1].Value;
-			string value = cookie.Groups[2].Value;
+			string name = cookie.Groups[1].Value.Trim();
+			string value = cookie.Groups[2].Value.Trim();
 			cookieContainer.Add(new Cookie(name, value) {Domain = target.Host});
 		}
 

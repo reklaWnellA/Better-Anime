@@ -134,6 +134,14 @@ class M3U8{
 		request.AddHeader("referer", refererUrl);
 
         response = await Web.AsyncRequest(request);
+
+        // if(!response.IsSuccessful && 
+        //   (response.ErrorMessage == "The SSL connection could not be established, see inner exception.")){
+        //     request = new (m3u8Url.Replace("https://","http://"), Method.Get);
+        //     request.AddHeader("referer", refererUrl);
+        //     response = await Web.AsyncRequest(request);
+        // }
+
 		m3u8 = response.Content;
 
         if (masterRegex.IsMatch(m3u8)){
